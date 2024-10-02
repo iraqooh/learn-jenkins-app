@@ -29,10 +29,6 @@ pipeline {
                     ls -la
                     node --version
                     npm --version
-                    npm cache clean --force
-                    nvm install 22.9.0
-                    nvm use 22.9.0
-                    npm install -g npm@latest
                     npm ci
                     npm run build
                     ls -la
