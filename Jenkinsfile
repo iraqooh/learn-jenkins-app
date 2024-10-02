@@ -17,6 +17,9 @@ pipeline {
             }
             steps {
                 script {
+                    // Ensure the cache directory exists
+                    sh "mkdir -p ${CACHE_DIR}"
+
                     if (fileExists("${CACHE_DIR}/node_modules")) {
                         echo 'Restoring node_modules from cache'
                         sh 'cp -r ${CACHE_DIR}/node_modules .'
@@ -53,53 +56,11 @@ pipeline {
 
                     steps {
                         sh '''
-                            #test -f build/index.html
                             npm test
                         '''
                     }
-                    // post {
-                    //     always {
-                    //         junit 'jest-results/junit.xml'
-                    //     }
-                    // }
                 }
-
-                // stage('E2E') {
-                //     agent {
-                //         docker {
-                //             image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                //             reuseNode true
-                //         }
-                //     }
-
-                //     steps {
-                //         sh '''
-                //             npm install serve
-                //             node_modules/.bin/serve -s build &
-                //             sleep 10
-                //             npx playwright test --reporter=html
-                //         '''
-                //     }
-
-                //     post {
-                //         always {
-                //             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report'])
-                //         }
-                //     }
-                // }
             }
-            // agent {
-            //     docker {
-            //         image 'node:18-alpine'
-            //         args '-v /root/.npm:/root/.npm'
-            //     }
-            // }
-            // steps {
-            //     sh '''
-            //         test -f build/index.html
-            //         npm test
-            //     '''
-            // }
         }
 
         stage('Deploy') {
