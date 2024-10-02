@@ -4,7 +4,6 @@ pipeline {
     environment {
         NETLIFY_SITE_ID = '70febb43-10c4-48c9-8600-8b4bd34a3ed3'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
-        CACHE_DIR = "${WORKSPACE}/.cache"
     }
 
     stages {
@@ -16,18 +15,6 @@ pipeline {
                 }
             }
             steps {
-                script {
-                    // Ensure the cache directory exists
-                    sh "mkdir -p ${CACHE_DIR}"
-
-                    if (fileExists("${CACHE_DIR}/node_modules")) {
-                        echo 'Restoring node_modules from cache'
-                        sh 'cp -r ${CACHE_DIR}/node_modules .'
-                    } else {
-                        echo 'No cache found, installing packages'
-                    }
-                }
-
                 sh '''
                     ls -la
                     node --version
@@ -36,11 +23,6 @@ pipeline {
                     npm run build
                     ls -la
                 '''
-
-                script {
-                    echo 'Saving node_modules to cache'
-                    sh 'cp -r node_modules ${CACHE_DIR}/'
-                }
             }
         }
 
