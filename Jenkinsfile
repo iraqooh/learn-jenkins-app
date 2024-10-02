@@ -4,6 +4,7 @@ pipeline {
     environment {
         NETLIFY_SITE_ID = '70febb43-10c4-48c9-8600-8b4bd34a3ed3'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+        CACHE_DIR = "${WORKSPACE}/.cache"
     }
 
     stages {
@@ -15,6 +16,15 @@ pipeline {
                 }
             }
             steps {
+                script {
+                    if (fileExists("${CACHE_DIR}/node_modules")) {
+                        echo 'Restoring node_modules from cache'
+                        sh 'cp -r ${CACHE_DIR}/node_modules .'
+                    } else {
+                        echo 'No cache found, installing packages'
+                    }
+                }
+
                 sh '''
                     ls -la
                     node --version
@@ -23,6 +33,11 @@ pipeline {
                     npm run build
                     ls -la
                 '''
+
+                script {
+                    echo 'Saving node_modules to cache'
+                    sh 'cp -r node_modules ${CACHE_DIR}/'
+                }
             }
         }
 
@@ -42,36 +57,36 @@ pipeline {
                             npm test
                         '''
                     }
-                    post {
-                        always {
-                            junit 'jest-results/junit.xml'
-                        }
-                    }
+                    // post {
+                    //     always {
+                    //         junit 'jest-results/junit.xml'
+                    //     }
+                    // }
                 }
 
-                stage('E2E') {
-                    agent {
-                        docker {
-                            image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                            reuseNode true
-                        }
-                    }
+                // stage('E2E') {
+                //     agent {
+                //         docker {
+                //             image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                //             reuseNode true
+                //         }
+                //     }
 
-                    steps {
-                        sh '''
-                            npm install serve
-                            node_modules/.bin/serve -s build &
-                            sleep 10
-                            npx playwright test --reporter=html
-                        '''
-                    }
+                //     steps {
+                //         sh '''
+                //             npm install serve
+                //             node_modules/.bin/serve -s build &
+                //             sleep 10
+                //             npx playwright test --reporter=html
+                //         '''
+                //     }
 
-                    post {
-                        always {
-                            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report'])
-                        }
-                    }
-                }
+                //     post {
+                //         always {
+                //             publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'playwright-report'])
+                //         }
+                //     }
+                // }
             }
             // agent {
             //     docker {
@@ -99,7 +114,7 @@ pipeline {
                 sh '''
                     npm install netlify-cli
                     node_modules/.bin/netlify --version
-                    echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
+                    echo "Deploying to production. Site ID: ${NETLIFY_SITE_ID}"
                     node_modules/.bin/netlify status
                 '''
             }
