@@ -6,7 +6,7 @@ pipeline {
             agent {
                 docker {
                     image 'node:18-alpine'
-                    reuseNode true
+                    args '-v /root/.npm:/root/.npm' // optional: to reuse NPM cache
                 }
             }
             steps {
@@ -25,10 +25,9 @@ pipeline {
             agent {
                 docker {
                     image 'node:18-alpine'
-                    reuseNode true
+                    args '-v /root/.npm:/root/.npm' // optional: to reuse NPM cache
                 }
             }
-            
             steps {
                 sh '''
                     test -f build/index.html
