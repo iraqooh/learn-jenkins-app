@@ -1,14 +1,13 @@
 pipeline {
     agent any
 
+    environment {
+        NODE_HOME = 'C:\\Program Files\\nodejs'
+        PATH = "${NODE_HOME};${env.PATH}"
+    }
+
     stages {
         stage('Build') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    args '-v /root/.npm:/root/.npm' // optional: to reuse NPM cache
-                }
-            }
             steps {
                 sh '''
                     ls -la
@@ -22,12 +21,6 @@ pipeline {
         }
 
         stage('Test') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    args '-v /root/.npm:/root/.npm' // optional: to reuse NPM cache
-                }
-            }
             steps {
                 sh '''
                     test -f build/index.html
@@ -37,12 +30,6 @@ pipeline {
         }
 
         stage('Deploy') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    args '-v /root/.npm:/root/.npm'
-                }
-            }
             steps {
                 sh '''
                     npm install netlify-cli
